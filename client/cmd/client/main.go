@@ -1,6 +1,7 @@
 package main
 
 import (
+	histter "client/internal"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -39,4 +40,10 @@ func getMeasurements() {
 
 func main() {
 	fmt.Println("TODO")
+
+	arr := []float64{25.4, 19.8, 23.4, 21.0, 18.7, 10.1, 12, 34, 26, 22, 28}
+	hist := histter.MakeHistogram(arr, '.', 10)
+	for _, s := range hist {
+		fmt.Println(s)
+	}
 }
