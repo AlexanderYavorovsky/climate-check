@@ -30,7 +30,7 @@ func getHumidityTemperature(data []byte) (float64, float64, error) {
 func sendToServer(serverIp, serverPort string, data []byte) {
 	humidity, temperature, err := getHumidityTemperature(data)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
@@ -42,13 +42,14 @@ func sendToServer(serverIp, serverPort string, data []byte) {
 	}
 	dataJSON, err := json.Marshal(dataMap)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
 	resp, err := http.Post("http://"+serverIp+":"+serverPort+"/measurements", "application/json", bytes.NewBuffer(dataJSON))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 	log.Println(resp)
 }
