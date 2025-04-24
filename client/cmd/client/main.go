@@ -1,11 +1,12 @@
 package main
 
 import (
-	histter "client/internal"
 	"encoding/json"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,8 +19,8 @@ type Measurement struct {
 	Temperature float64   `json:"temperature"`
 }
 
-func getMeasurements() {
-	resp, err := http.Get("http://localhost:8080/measurements")
+func getMeasurements(serverIp, serverPort string) {
+	resp, err := http.Get(fmt.Sprintf("http://%v:%v/measurements", serverIp, serverPort))
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -34,16 +35,20 @@ func getMeasurements() {
 	}
 
 	for _, m := range measurements {
-		fmt.Println(m.Humidity, m.Temperature)
+		fmt.Println(m.Time.Local(), m.Humidity, m.Temperature)
 	}
 }
 
 func main() {
-	fmt.Println("TODO")
-
-	arr := []float64{25.4, 19.8, 23.4, 21.0, 18.7, 10.1, 12, 34, 26, 22, 28}
-	hist := histter.MakeHistogram(arr, '.', 10)
-	for _, s := range hist {
-		fmt.Println(s)
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("no .env file found")
 	}
+
+	serverIp := os.Getenv("SERVER_IP")
+	serverPort := os.Getenv("SERVER_PORT")
+
+	getMeasurements(serverIp, serverPort)
+	//TODO: print histogram
+	//TODO: limit by date/...
 }
