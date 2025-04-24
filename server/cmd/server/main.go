@@ -21,7 +21,7 @@ func main() {
 		log.Println("no .env file found")
 	}
 
-	port := os.Getenv("PORT")
+	port := os.Getenv("SERVER_PORT")
 	dbURL := os.Getenv("DB_URL")
 
 	//init storage
