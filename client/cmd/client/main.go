@@ -1,16 +1,16 @@
 package main
 
 import (
-	histter "client/internal"
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"client/internal/histter"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 type Measurement struct {
@@ -20,12 +20,14 @@ type Measurement struct {
 	Temperature float64   `json:"temperature"`
 }
 
-func getMeasurements(serverIp, serverPort string) []Measurement {
-	resp, err := http.Get(fmt.Sprintf("http://%v:%v/measurements", serverIp, serverPort))
+func getMeasurements(serverIP, serverPort string) []Measurement {
+	//TODO: use context with timeout
+	resp, err := http.Get(fmt.Sprintf("http://%v:%v/measurements", serverIP, serverPort))
 	if err != nil {
 		log.Println(err.Error())
 		return nil
 	}
+	defer resp.Body.Close()
 
 	var measurements []Measurement
 	decoder := json.NewDecoder(resp.Body)
@@ -39,17 +41,17 @@ func getMeasurements(serverIp, serverPort string) []Measurement {
 }
 
 func getHumidity(measurements []Measurement) []float64 {
-	var humidity []float64
-	for _, m := range measurements {
-		humidity = append(humidity, m.Humidity)
+	humidity := make([]float64, len(measurements))
+	for i, m := range measurements {
+		humidity[i] = m.Humidity
 	}
 	return humidity
 }
 
 func getTemperature(measurements []Measurement) []float64 {
-	var temperature []float64
-	for _, m := range measurements {
-		temperature = append(temperature, m.Temperature)
+	temperature := make([]float64, len(measurements))
+	for i, m := range measurements {
+		temperature[i] = m.Temperature
 	}
 	return temperature
 }
@@ -60,11 +62,11 @@ func main() {
 		log.Println("no .env file found")
 	}
 
-	serverIp := os.Getenv("SERVER_IP")
+	serverIP := os.Getenv("SERVER_IP")
 	serverPort := os.Getenv("SERVER_PORT")
 
 	lastNMeasurements := 10
-	measurements := getMeasurements(serverIp, serverPort)
+	measurements := getMeasurements(serverIP, serverPort)
 	humidity := getHumidity(measurements[len(measurements)-lastNMeasurements:])
 	fmt.Println("Humidity, %: ", humidity)
 	temperature := getTemperature(measurements[len(measurements)-lastNMeasurements:])
@@ -72,5 +74,5 @@ func main() {
 	fmt.Println("Temperature, C: ", temperature)
 	histter.PrintHistogram(histter.MakeHistogram(temperature, '.', 10, 30))
 
-	//TODO: limit by date/...
+	// TODO: limit by date/...
 }

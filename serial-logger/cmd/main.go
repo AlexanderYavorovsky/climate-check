@@ -27,7 +27,7 @@ func getHumidityTemperature(data []byte) (float64, float64, error) {
 	return humidity, temperature, nil
 }
 
-func sendToServer(serverIp, serverPort string, data []byte) {
+func sendToServer(serverIP, serverPort string, data []byte) {
 	humidity, temperature, err := getHumidityTemperature(data)
 	if err != nil {
 		log.Println(err)
@@ -46,11 +46,12 @@ func sendToServer(serverIp, serverPort string, data []byte) {
 		return
 	}
 
-	resp, err := http.Post("http://"+serverIp+":"+serverPort+"/measurements", "application/json", bytes.NewBuffer(dataJSON))
+	resp, err := http.Post("http://"+serverIP+":"+serverPort+"/measurements", "application/json", bytes.NewBuffer(dataJSON))
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	defer resp.Body.Close()
 	log.Println(resp)
 }
 
@@ -60,30 +61,30 @@ func main() {
 		log.Println("no .env file found")
 	}
 
-	serverIp := os.Getenv("SERVER_IP")
+	serverIP := os.Getenv("SERVER_IP")
 	serverPort := os.Getenv("SERVER_PORT")
 
-	c := &serial.Config{
+	serialConfig := &serial.Config{
 		Name:        "/dev/ttyACM0",
 		Baud:        1000000,
 		ReadTimeout: time.Minute * 2,
 	}
 
-	s, err := serial.OpenPort(c)
+	serialPort, err := serial.OpenPort(serialConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	buf := make([]byte, 2048)
+	buf := make([]byte, 16)
 	for {
-		n, err := s.Read(buf)
+		read, err := serialPort.Read(buf)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if n == BytesReadCnt {
+		if read == BytesReadCnt {
 			log.Println("Sending to server")
-			sendToServer(serverIp, serverPort, buf[:n])
+			sendToServer(serverIP, serverPort, buf[:read])
 		}
 	}
 }

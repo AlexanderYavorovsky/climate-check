@@ -7,6 +7,7 @@ import (
 	"os"
 	"server/internal/database"
 	"server/internal/handlers"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	//init config
+	// init config
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("no .env file found")
@@ -24,7 +25,7 @@ func main() {
 	port := os.Getenv("SERVER_PORT")
 	dbURL := os.Getenv("DB_URL")
 
-	//init storage
+	// init storage
 	conn, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatal("Can't connect to database", err)
@@ -35,16 +36,17 @@ func main() {
 		DB: db,
 	}
 
-	//init router
+	// init router
 	router := chi.NewRouter()
 	router.Get("/healthz", handlers.HandlerHealthz)
 	router.Get("/measurements", apiCfg.GetMeasurements)
 	router.Post("/measurements", apiCfg.PostMeasurement)
 
-	//run server
+	// run server
 	srv := &http.Server{
-		Handler: router,
-		Addr:    ":" + port,
+		Handler:     router,
+		Addr:        ":" + port,
+		ReadTimeout: 5 * time.Second,
 	}
 
 	log.Printf("Server starting on port %v", port)

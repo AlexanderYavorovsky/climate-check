@@ -1,0 +1,17 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - depguard
+    - forbidigo
+    - godox
+    - wsl
+    - errcheck
+    - nlreturn
+    - exhaustruct
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - goimports
+    - golines
