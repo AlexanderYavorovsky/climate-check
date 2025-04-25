@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"client/internal/histter"
+
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )

@@ -5,13 +5,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+
 	"server/internal/database"
 	"server/internal/handlers"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
-
 	_ "github.com/lib/pq"
 )
 

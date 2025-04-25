@@ -14,13 +14,14 @@ import (
 )
 
 const BytesReadCnt = 11
+const HumidityLenBytes = 5
 
 func getHumidityTemperature(data []byte) (float64, float64, error) {
-	humidity, err := strconv.ParseFloat(string(data[:5]), 64)
+	humidity, err := strconv.ParseFloat(string(data[:HumidityLenBytes]), 64)
 	if err != nil {
 		return 0, 0, err
 	}
-	temperature, err := strconv.ParseFloat(string(data[6:]), 64)
+	temperature, err := strconv.ParseFloat(string(data[HumidityLenBytes+1:]), 64)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -36,7 +37,7 @@ func sendToServer(serverIP, serverPort string, data []byte) {
 
 	log.Printf("Hum:%v Temp:%v\n", humidity, temperature)
 
-	dataMap := map[string]interface{}{
+	dataMap := map[string]any{
 		"humidity":    humidity,
 		"temperature": temperature,
 	}
@@ -46,7 +47,11 @@ func sendToServer(serverIP, serverPort string, data []byte) {
 		return
 	}
 
-	resp, err := http.Post("http://"+serverIP+":"+serverPort+"/measurements", "application/json", bytes.NewBuffer(dataJSON))
+	resp, err := http.Post(
+		"http://"+serverIP+":"+serverPort+"/measurements",
+		"application/json",
+		bytes.NewBuffer(dataJSON),
+	)
 	if err != nil {
 		log.Println(err)
 		return

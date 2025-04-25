@@ -11,7 +11,5 @@ linters:
     - exhaustruct
 formatters:
   enable:
-    - gci
     - gofmt
-    - goimports
     - golines
