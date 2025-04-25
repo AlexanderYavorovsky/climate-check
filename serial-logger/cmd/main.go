@@ -13,7 +13,7 @@ import (
 	"github.com/tarm/serial"
 )
 
-const MustBytesRead = 11
+const BytesReadCnt = 11
 
 func getHumidityTemperature(data []byte) (float64, float64, error) {
 	humidity, err := strconv.ParseFloat(string(data[:5]), 64)
@@ -34,7 +34,7 @@ func sendToServer(serverIp, serverPort string, data []byte) {
 		return
 	}
 
-	log.Printf("\nHum:%v Temp:%v\n", humidity, temperature)
+	log.Printf("Hum:%v Temp:%v\n", humidity, temperature)
 
 	dataMap := map[string]interface{}{
 		"humidity":    humidity,
@@ -66,7 +66,7 @@ func main() {
 	c := &serial.Config{
 		Name:        "/dev/ttyACM0",
 		Baud:        1000000,
-		ReadTimeout: time.Second * 5,
+		ReadTimeout: time.Minute * 2,
 	}
 
 	s, err := serial.OpenPort(c)
@@ -74,14 +74,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	buf := make([]byte, 2048)
 	for {
-		buf := make([]byte, 2048)
 		n, err := s.Read(buf)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if n == MustBytesRead {
+		if n == BytesReadCnt {
 			log.Println("Sending to server")
 			sendToServer(serverIp, serverPort, buf[:n])
 		}

@@ -12,7 +12,9 @@ void setup() {
 }
 
 void loop() {
-  delay(5000);
+  //wait for 10 seconds
+  long waitMs = 10L * 1000L;
+  delay(waitMs);
 
   float h = dht.readHumidity();
   float t = dht.readTemperature();
