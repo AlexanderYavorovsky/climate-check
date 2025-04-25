@@ -1,6 +1,7 @@
 package main
 
 import (
+	histter "client/internal"
 	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -19,11 +20,11 @@ type Measurement struct {
 	Temperature float64   `json:"temperature"`
 }
 
-func getMeasurements(serverIp, serverPort string) {
+func getMeasurements(serverIp, serverPort string) []Measurement {
 	resp, err := http.Get(fmt.Sprintf("http://%v:%v/measurements", serverIp, serverPort))
 	if err != nil {
 		log.Println(err.Error())
-		return
+		return nil
 	}
 
 	var measurements []Measurement
@@ -31,12 +32,26 @@ func getMeasurements(serverIp, serverPort string) {
 	err = decoder.Decode(&measurements)
 	if err != nil {
 		log.Println(err.Error())
-		return
+		return nil
 	}
 
+	return measurements
+}
+
+func getHumidity(measurements []Measurement) []float64 {
+	var humidity []float64
 	for _, m := range measurements {
-		fmt.Println(m.Time.Local(), m.Humidity, m.Temperature)
+		humidity = append(humidity, m.Humidity)
 	}
+	return humidity
+}
+
+func getTemperature(measurements []Measurement) []float64 {
+	var temperature []float64
+	for _, m := range measurements {
+		temperature = append(temperature, m.Temperature)
+	}
+	return temperature
 }
 
 func main() {
@@ -48,7 +63,14 @@ func main() {
 	serverIp := os.Getenv("SERVER_IP")
 	serverPort := os.Getenv("SERVER_PORT")
 
-	getMeasurements(serverIp, serverPort)
-	//TODO: print histogram
+	lastNMeasurements := 10
+	measurements := getMeasurements(serverIp, serverPort)
+	humidity := getHumidity(measurements[len(measurements)-lastNMeasurements:])
+	fmt.Println("Humidity, %: ", humidity)
+	temperature := getTemperature(measurements[len(measurements)-lastNMeasurements:])
+	histter.PrintHistogram(histter.MakeHistogram(humidity, '.', 10, 100))
+	fmt.Println("Temperature, C: ", temperature)
+	histter.PrintHistogram(histter.MakeHistogram(temperature, '.', 10, 30))
+
 	//TODO: limit by date/...
 }
